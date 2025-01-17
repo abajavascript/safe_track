@@ -1,0 +1,152 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.container,
+.dashboard,
+.personal-info-form,
+.actions-bar,
+.users-list,
+.regions,
+.self-check {
+  display: flex;
+  flex-direction: column;
+  /* justify-content: center; */
+  justify-content: space-between;
+  align-items: center;
+  /* min-height: 100vh; */
+  background-color: #f8f9fa;
+}
+
+.actions-bar {
+  width: 300px;
+  flex-direction: row;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.actions-left,
+.actions-right {
+  display: flex;
+  gap: 10px;
+}
+/*
+.actions-bar button[title] {
+  position: relative;
+} */
+
+.logo img {
+  max-width: 300px;
+  margin-bottom: 20px;
+}
+
+.lang {
+  width: 300px;
+  text-align: right;
+  margin-bottom: 20px;
+}
+
+form {
+  width: 100%;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+form input,
+form select {
+  margin-bottom: 15px;
+  padding: 10px;
+  font-size: 16px;
+}
+
+button {
+  padding: 10px;
+  font-size: 16px;
+  color: #fff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+@media (max-width: 768px) {
+  .logo img {
+    max-width: 300px;
+  }
+}
+
+/* Only for Regions component */
+.icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: black;
+  padding: 5px;
+}
+
+.icon-button:hover {
+  color: #007bff; /* Change color on hover */
+}
+
+.icon-button:focus {
+  outline: none;
+}
+
+.icon-button svg {
+  font-size: 1.2em; /* Adjust icon size */
+}
+
+.response-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.response-buttons button {
+  background: none;
+  border: 2px solid #ccc;
+  padding: 10px 20px;
+  color: black;
+  font-size: 1.2em;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.response-buttons button.selected {
+  border-color: #007bff;
+  background-color: #007bff;
+  color: #fff;
+}
+
+.comment-section {
+  margin: 15px 0;
+}
+
+textarea {
+  width: 100%;
+  height: 100px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* button {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  font-size: 1em;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+} */
