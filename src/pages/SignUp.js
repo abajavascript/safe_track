@@ -36,7 +36,7 @@ const SignUp = () => {
         email,
         password
       );
-      //await sendEmailVerification(userCredential.user); // --- NEED TO BE UNCOMMENTED IN PRODUCTION
+      await sendEmailVerification(userCredential.user); // --- NEED TO BE UNCOMMENTED IN PRODUCTION
       setSuccess(t("verify-your-email"));
       setError("");
     } catch (err) {
