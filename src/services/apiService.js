@@ -1,7 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = process.env.API_BASE_URL; //"http://localhost:5000/api"; // Replace with your backend URL
-console.log(API_BASE_URL);
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL; //"http://localhost:5000/api"; // Replace with your backend URL
 
 // Set up Axios instance
 const apiClient = axios.create({
@@ -20,11 +19,10 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-console.log("api=" + apiClient.baseURL);
 // API methods
 export const apiService = {
   getUserById: (uid) => apiClient.get(`/users/${uid}`),
-  existUserById: (uid) => apiClient.get(`/api/users/exist/${uid}`),
+  existUserById: (uid) => apiClient.get(`/users/exist/${uid}`),
   addUser: (userData) => apiClient.post("/users/add", userData),
   getUserList: () => apiClient.get("/users"),
   getManagers: () => apiClient.get("/users/managers"),
