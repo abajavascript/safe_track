@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { auth } from "../firebaseConfig";
 import { useTranslation } from "react-i18next";
 import Logo from "../components/Logo";
 import LanguageSelector from "../components/LanguageSelector";
@@ -12,6 +13,40 @@ const SelfCheck = () => {
   const [safetyComment, setSafetyComment] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [lastRequest, setLastRequest] = useState(null);
+  const [lastResponse, setLastResponse] = useState(null);
+
+  const fetchStatus = async () => {
+    try {
+      const status = await apiService.getLastStatusByUserId(
+        auth.currentUser.uid
+      );
+      // const status = {
+      //   lastRequest: new Date() - 1,
+      //   lastResponse: { date: new Date(), safety_status: "Yes" },
+      // };
+      setLastRequest(status.data.data.lastRequest);
+      setLastResponse(status.data.data.lastResponse);
+      console.log(status);
+    } catch (error) {
+      console.error("Failed to fetch status:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchStatus();
+  }, []);
+
+  const formatDate = (date) => {
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, "0");
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+    const seconds = String(d.getSeconds()).padStart(2, "0");
+    return `${day}.${month}.${year} ${hours}:${minutes}:${seconds}`;
+  };
 
   const handleResponse = async () => {
     setError("");
@@ -31,20 +66,51 @@ const SelfCheck = () => {
       setSuccess(t("responseSaved"));
       setSafetyStatus(null);
       setSafetyComment("");
+      fetchStatus();
     } catch (err) {
       setError(err.response ? err.response.data.message : t("unknown-error"));
     }
   };
 
   return (
-    <div className="self-check">
+    <div className="container">
       <Logo />
       <LanguageSelector />
       <ActionsBar />
       <h1>{t("selfCheck")}</h1>
       <Messages error={error} success={success} />
+
+      <div className="status-container">
+        {lastRequest && (
+          <div className="status-item">
+            <span>Last Request: {formatDate(lastRequest.createdAt)}</span>
+            <span>
+              {lastResponse &&
+              new Date(lastRequest.createdAt) <
+                new Date(lastResponse.response_date_time) ? (
+                lastResponse.safety_status === "Yes" ? (
+                  <span style={{ color: "green" }}>✔️</span>
+                ) : (
+                  <span style={{ color: "red" }}>❌</span>
+                )
+              ) : (
+                <span style={{ color: "gray" }}>⚪</span>
+              )}
+            </span>
+          </div>
+        )}
+        {lastResponse && (
+          <div className="status-item">
+            <span>
+              Last Response: {formatDate(lastResponse.response_date_time)} -{" "}
+              {lastResponse.safety_status}
+            </span>
+          </div>
+        )}
+      </div>
+
       <div className="question">
-        <p>{t("areYouSafe")}</p>
+        <h3>{t("areYouSafe")}</h3>
         <div className="response-buttons">
           <button
             onClick={() => setSafetyStatus("Yes")}
@@ -59,17 +125,15 @@ const SelfCheck = () => {
             👎 {t("no")}
           </button>
         </div>
-      </div>
-      {safetyStatus === "No" && (
-        <div className="comment-section">
+        {safetyStatus === "No" && (
           <textarea
             placeholder={t("provideDetails")}
             value={safetyComment}
             onChange={(e) => setSafetyComment(e.target.value)}
           />
-        </div>
-      )}
-      <button onClick={handleResponse}>{t("respond")}</button>
+        )}
+        <button onClick={handleResponse}>{t("respond")}</button>
+      </div>
     </div>
   );
 };

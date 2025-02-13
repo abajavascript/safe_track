@@ -30,7 +30,7 @@ const PersonalInfoForm = () => {
   const [isApproved, setIsApproved] = useState(false);
   const [userExists, setUserExists] = useState(false);
   const navigate = useNavigate(); // Initialize navigate
-  const [email, setEmail] = useState(auth.currentUser.email);
+  const [email, setEmail] = useState(auth.currentUser?.email);
 
   // Fetch regions and managers from the database
   useEffect(() => {
@@ -57,18 +57,9 @@ const PersonalInfoForm = () => {
           setUserExists(true);
           setFormData({
             ...userResponse.data.data,
-            email: email,
+            email: auth.currentUser.email,
             uid: auth.currentUser.uid,
           });
-          // setFormData({
-          //   uid: auth.currentUser.uid,
-          //   name: userResponse.data.data.name || "",
-          //   surname: userResponse.data.data.surname || "",
-          //   phone: userResponse.data.data.phone || "",
-          //   region: userResponse.data.data.region || "",
-          //   manager_uid: userResponse.data.data.manager_uid || "",
-          //   manager_name: userResponse.data.data.manager_name || "",
-          // });
           setIsApproved(userResponse.data.data.status === "Approved");
           if (userResponse.data.data.status !== "Approved")
             setError(t("ERR_EMAIL_IS_NOT_APPROVED"));
@@ -76,7 +67,7 @@ const PersonalInfoForm = () => {
           setUserExists(false);
           setFormData({
             uid: auth.currentUser.uid,
-            email: email,
+            email: auth.currentUser.email,
             name: "",
             surname: "",
             phone: "",
@@ -97,7 +88,6 @@ const PersonalInfoForm = () => {
           manager_uid: "",
           manager_name: "",
         });
-        console.log("Clear userInfo 2");
         setUserExists(false);
         console.log(error);
         setError(t("failedToLoadData"));
@@ -164,12 +154,11 @@ const PersonalInfoForm = () => {
   };
 
   return (
-    <div className="personal-info-form">
+    <div className="container">
       <Logo />
       <LanguageSelector />
-      <ActionsBar />
+      {isApproved && <ActionsBar />}
       <h1>{t("personalInformation")}</h1>
-      {success && <p style={{ color: "green" }}>{success}</p>}
       <p>
         {t("Email")} {email}
         {isApproved ? (
@@ -186,65 +175,67 @@ const PersonalInfoForm = () => {
           />
         )}
       </p>
-      <Messages error={error} />{" "}
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="name"
-          placeholder={t("name")}
-          value={formData.name}
-          onChange={handleInputChange}
-          required
-        />
-        <input
-          type="text"
-          name="surname"
-          placeholder={t("surname")}
-          value={formData.surname}
-          onChange={handleInputChange}
-          required
-        />
-        <input
-          type="tel"
-          name="phone"
-          placeholder={t("phone")}
-          value={formData.phone}
-          onChange={handleInputChange}
-          required
-        />
-        <select
-          name="region"
-          value={formData.region}
-          onChange={handleInputChange}
-          required={regions.length > 0}
-        >
-          <option value="" disabled>
-            {t("selectRegion")}
-          </option>
-          {regions.map((region) => (
-            <option key={region.id} value={region.name}>
-              {region.name}
+      <Messages error={error} success={success} />
+      <div className="personal-info-form">
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            name="name"
+            placeholder={t("name")}
+            value={formData.name}
+            onChange={handleInputChange}
+            required
+          />
+          <input
+            type="text"
+            name="surname"
+            placeholder={t("surname")}
+            value={formData.surname}
+            onChange={handleInputChange}
+            required
+          />
+          <input
+            type="tel"
+            name="phone"
+            placeholder={t("phone")}
+            value={formData.phone}
+            onChange={handleInputChange}
+            required
+          />
+          <select
+            name="region"
+            value={formData.region}
+            onChange={handleInputChange}
+            required={regions.length > 0}
+          >
+            <option value="" disabled>
+              {t("selectRegion")}
             </option>
-          ))}
-        </select>
-        <input type="hidden" name="manager_name" value="" />
-        <select
-          name="manager_uid"
-          value={formData.manager_uid}
-          onChange={handleInputChange}
-          required={managers.length > 0}
-        >
-          <option value="" disabled>
-            {t("selectManager")}
-          </option>
-          {managers.map((manager) => (
-            <option key={manager.uid} value={manager.uid}>
-              {manager.name + " " + manager.surname}
+            {regions.map((region) => (
+              <option key={region.id} value={region.name}>
+                {region.name}
+              </option>
+            ))}
+          </select>
+          <input type="hidden" name="manager_name" value="" />
+          <select
+            name="manager_uid"
+            value={formData.manager_uid}
+            onChange={handleInputChange}
+            required={managers.length > 0}
+          >
+            <option value="" disabled>
+              {t("selectManager")}
             </option>
-          ))}
-        </select>
-        <button type="submit">{t("save")}</button>
-      </form>
+            {managers.map((manager) => (
+              <option key={manager.uid} value={manager.uid}>
+                {manager.name + " " + manager.surname}
+              </option>
+            ))}
+          </select>
+          <button type="submit">{t("save")}</button>
+        </form>
+      </div>
     </div>
   );
 };

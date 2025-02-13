@@ -42,6 +42,7 @@ export const apiService = {
     apiClient.post(`/regions/${regionId}/notify`),
 
   addResponse: (data) => apiClient.post("/responses", data),
+  getLastStatusByUserId: (uid) => apiClient.get(`/responses/status/${uid}`),
 
   saveSubscription: (data) => apiClient.post("/subscriptions", data),
 };

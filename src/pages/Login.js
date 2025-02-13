@@ -4,7 +4,9 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   onAuthStateChanged,
+  signOut,
 } from "firebase/auth";
+
 import { auth } from "../firebaseConfig.js";
 import Logo from "../components/Logo"; // Add this
 import LanguageSelector from "../components/LanguageSelector"; // Add this
@@ -41,20 +43,10 @@ const Login = () => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
-          // Fetch user data from the backend
-          // const userData = await apiService.getUserById(user.uid);
-          // if (userData.data.status === "PendingApproval") {
-          //   navigate("/personal-info");
-          // } else {
-          //   navigate("/dashboard");
-          // }
-          console.log("onAuthStateChanged");
-          console.log(user);
-          console.log(auth);
           await userAfterLogin(user);
-          console.log("User is logged in");
         } catch (error) {
-          console.error("Failed to fetch user data:", error);
+          //setError(t("failedToFetchUserData" + error.message));
+          console.error("Failed to fetch user data: ", error);
         }
       } else {
         console.log("not loggd in");
@@ -65,12 +57,30 @@ const Login = () => {
   }, []);
 
   const userAfterLogin = async (user) => {
+    if (user.emailVerified === false) {
+      await signOut(auth);
+      setError(t("ERR_EMAIL_IS_NOT_VERIFIED"));
+      return;
+    }
+
     const token = await user.getIdToken(); // Get Firebase token
     localStorage.setItem("token", token); // Store token in localStorage
 
     // Check user status from the backend
     let userStatus = "";
-    let response = await apiService.existUserById(user.uid);
+    let response;
+    try {
+      response = await apiService.existUserById(user.uid);
+    } catch (err) {
+      if (err.response?.data?.message === "ERR_EMAIL_IS_NOT_VERIFIED") {
+        setError(t("ERR_EMAIL_IS_NOT_VERIFIED"));
+      } else {
+        setError(err.message);
+      }
+    }
+
+    console.log("Response: ", response);
+
     if (response.data.exist) {
       try {
         response = await apiService.getUserById(user.uid);
@@ -81,14 +91,19 @@ const Login = () => {
     } else {
       userStatus = "UserDoesNotExist";
     }
-    if (userStatus === "UserDoesNotExist" || userStatus === "PendingApproval") {
+    if (userStatus === "UserDoesNotExist" || userStatus === "Pending") {
       // Redirect to Personal Information page
       console.log(userStatus);
       navigate("/personal-info");
     } else {
-      // Redirect to Dashboard
+      //approved user
       await subscribeToNotifications(user.uid);
-      navigate("/regions");
+      //if admin then navigate to regions page
+      if (response.data.data.role === "Admin") {
+        navigate("/regions");
+      } else {
+        navigate("/self-check");
+      }
       // navigate("/dashboard");
     }
   };
@@ -127,45 +142,10 @@ const Login = () => {
         email,
         password
       );
-
-      // const token = await userCredential.user.getIdToken(); // Get Firebase token
-      // localStorage.setItem("token", token); // Store token in localStorage
-
-      // // Check user status from the backend
-      // let userStatus = "";
-      // let response = await apiService.existUserById(userCredential.user.uid);
-      // if (response.data.exist) {
-      //   try {
-      //     response = await apiService.getUserById(userCredential.user.uid);
-      //     userStatus = response.data.data.status;
-      //   } catch (error) {
-      //     userStatus = "UserStatusUnknown";
-      //   }
-      // } else {
-      //   userStatus = "UserDoesNotExist";
-      // }
-      // if (
-      //   userStatus === "UserDoesNotExist" ||
-      //   userStatus === "PendingApproval"
-      // ) {
-      //   // Redirect to Personal Information page
-      //   console.log(userStatus);
-      //   navigate("/personal-info");
-      // } else {
-      //   // Redirect to Dashboard
-      //   await subscribeToNotifications(userCredential.user.uid);
-      //   navigate("/regions");
-      //   // navigate("/dashboard");
-      // }
-    } catch (err) {
-      //setError(err.message);
-      if (err.response?.data?.message === "ERR_EMAIL_IS_NOT_VERIFIED") {
-        setError(t("ERR_EMAIL_IS_NOT_VERIFIED"));
-      } else if (err.response?.data?.message === "ERR_EMAIL_IS_NOT_APPROVED") {
-        setError(t("ERR_EMAIL_IS_NOT_APPROVED"));
-      } else {
-        setError(err.response ? err.response.data.message : err.message);
-      }
+      await userAfterLogin(userCredential.user);
+    } catch (error) {
+      setError(error.message);
+      console.log("Login error:", error);
     }
   };
 
@@ -193,26 +173,28 @@ const Login = () => {
       <Logo />
       <LanguageSelector />
       <Messages error={error} success={resetMessage} />{" "}
-      <form onSubmit={handleLogin}>
-        <input
-          type="email"
-          placeholder={t("email")}
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder={t("password")}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">{t("signIn")}</button>
-      </form>
+      <div className="login">
+        <form onSubmit={handleLogin}>
+          <input
+            type="email"
+            placeholder={t("email")}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder={t("password")}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button type="submit">{t("signIn")}</button>
+        </form>
+      </div>
       <div
-        className="links"
-        style={{
+        className="login-links"
+        stylea={{
           display: "flex",
           justifyContent: "space-between",
           width: "100%",

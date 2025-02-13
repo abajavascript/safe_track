@@ -1,5 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { auth } from "../firebaseConfig";
 
 const LanguageSelector = () => {
   const { i18n } = useTranslation();
@@ -10,6 +11,7 @@ const LanguageSelector = () => {
 
   return (
     <div className="lang">
+      <div>{auth.currentUser?.email ? auth.currentUser?.email : "\u00A0"}</div>
       <select
         onChange={(e) => changeLanguage(e.target.value)}
         defaultValue={i18n.language}

@@ -1,8 +1,9 @@
 import React from "react";
-import { signOut } from "firebase/auth";
+import { signOut, sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../firebaseConfig";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useTranslation } from "react-i18next";
 import {
   faUserCircle,
   faMapMarkedAlt,
@@ -10,10 +11,12 @@ import {
   faClipboardCheck,
   faKey,
   faSignOutAlt,
+  faHome, // Add this line
 } from "@fortawesome/free-solid-svg-icons";
 
 const ActionsBar = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // Navigation Handlers
   const handleSelfCheck = () => {
@@ -33,8 +36,28 @@ const ActionsBar = () => {
     navigate("/regions");
   };
 
-  const handleChangePassword = () => {
-    navigate("/change-password");
+  const handleHome = () => {
+    navigate("/");
+  };
+
+  const handlePasswordReset = async () => {
+    if (auth.currentUser) {
+      const confirmReset = window.confirm(
+        t("are-you-sure-you-want-to-send-password-reset-email-to") +
+          auth.currentUser.email +
+          "?"
+      );
+      if (confirmReset) {
+        try {
+          await sendPasswordResetEmail(auth, auth.currentUser.email);
+          alert(t("password-reset-email-sent"));
+        } catch (error) {
+          alert(error.message);
+        }
+      }
+    } else {
+      alert(t("no-user-logged-in"));
+    }
   };
 
   const handleLogout = async () => {
@@ -95,10 +118,13 @@ const ActionsBar = () => {
 
       {/* Right Aligned Buttons */}
       <div className="right-actions">
+        <button className="icon-button" onClick={handleHome} title="Home">
+          <FontAwesomeIcon icon={faHome} />
+        </button>
         <button
           className="icon-button"
-          onClick={handleChangePassword}
-          title="Change Password"
+          onClick={handlePasswordReset}
+          title="Reset Password"
         >
           <FontAwesomeIcon icon={faKey} />
         </button>

@@ -84,16 +84,26 @@ const UsersList = () => {
     }
   };
 
-  // Handle delete user
+  // Handle delete user with confirmation
   const handleDelete = async (uid) => {
-    try {
-      await apiService.deleteUser(uid);
-      setUsers(users.filter((user) => user.uid !== uid));
-      setSuccess(t("userDeleted"));
-    } catch (err) {
-      setError(t("failedToDeleteUser"));
+    if (window.confirm(t("confirmDeleteUser"))) {
+      try {
+        await apiService.deleteUser(uid);
+        setUsers(users.filter((user) => user.uid !== uid));
+        setSuccess(t("userDeleted"));
+      } catch (err) {
+        setError(t("failedToDeleteUser"));
+      }
     }
   };
+
+  // Sort users by role and then by fullName
+  const sortedUsers = users.sort((a, b) => {
+    if (a.role === b.role) {
+      return a.fullName.localeCompare(b.fullName);
+    }
+    return a.role.localeCompare(b.role);
+  });
 
   return (
     <div className="users-list">
@@ -102,34 +112,36 @@ const UsersList = () => {
       <ActionsBar />
       <h1>{t("usersList")}</h1>
       <Messages error={error} success={success} />
-      <table>
+      <table className="users-table">
         <thead>
           <tr>
             <th>{t("fullName")}</th>
+            <th>{t("status")}</th>
             <th>{t("email")}</th>
             <th>{t("phone")}</th>
             <th>{t("region")}</th>
             <th>{t("manager")}</th>
             <th>{t("role")}</th>
-            <th>{t("status")}</th>
             <th>{t("actions")}</th>
           </tr>
         </thead>
         <tbody>
-          {users.map((user) => (
+          {sortedUsers.map((user) => (
             <tr key={user.uid}>
-              <td>{user.fullName}</td>
-              <td>{user.email}</td>
-              <td>{user.phone}</td>
-              <td>{user.region}</td>
-              <td>
-                {user.manager_name}{" "}
+              <td data-label={t("fullName")}>{user.fullName || "\u00A0"}</td>
+              <td data-label={t("status")}>{"\u00A0"}</td>
+              <td data-label={t("email")}>{user.email || "\u00A0"}</td>
+              <td data-label={t("phone")}>{user.phone || "\u00A0"}</td>
+              <td data-label={t("region")}>{user.region || "\u00A0"}</td>
+              <td data-label={t("manager")}>
+                {user.manager_name || "\u00A0"}{" "}
                 <span style={{ display: "none" }}>{user.manager_uid}</span>
               </td>
-              <td>
+              <td data-label={t("role")}>
                 {editingUser && editingUser?.uid === user.uid ? (
                   <select
                     value={editingUser.role}
+                    style={{ fontSize: "16px" }}
                     onChange={(e) =>
                       setEditingUser({ ...editingUser, role: e.target.value })
                     }
@@ -139,19 +151,22 @@ const UsersList = () => {
                     <option value="Admin">Admin</option>
                   </select>
                 ) : (
-                  user.role
+                  user.role || "\u00A0"
                 )}
                 {isAdmin && (
                   <>
                     {editingUser?.uid === user.uid ? (
                       <>
+                        {" "}
                         <button
+                          className="icon-button"
                           onClick={() => handleSaveRole(user.uid)}
                           title={t("save")}
                         >
                           <FontAwesomeIcon icon={faSave} />
                         </button>
                         <button
+                          className="icon-button"
                           onClick={() => setEditingUser(null)}
                           title={t("cancel")}
                         >
@@ -160,7 +175,9 @@ const UsersList = () => {
                       </>
                     ) : (
                       <>
+                        {" "}
                         <button
+                          className="icon-button"
                           onClick={() => handleEdit(user.uid, user.role)}
                           title={t("edit")}
                         >
@@ -171,27 +188,25 @@ const UsersList = () => {
                   </>
                 )}
               </td>
-              <td>
-                {user.status}
-                {user.status === "PendingApproval" && (
-                  <>
-                    {" "}
-                    <button
-                      onClick={() => handleApprove(user.uid)}
-                      title={t("approve")}
-                    >
-                      <FontAwesomeIcon icon={faCheck} />
-                    </button>{" "}
-                    <button
-                      onClick={() => handleDelete(user.uid)}
-                      title={t("delete")}
-                    >
-                      <FontAwesomeIcon icon={faTrash} />
-                    </button>
-                  </>
+              <td data-label={t("actions")}>
+                {user.status || "\u00A0"}
+                {user.status === "Pending" && (
+                  <button
+                    className="icon-button"
+                    onClick={() => handleApprove(user.uid)}
+                    title={t("approve")}
+                  >
+                    <FontAwesomeIcon icon={faCheck} />
+                  </button>
                 )}
+                <button
+                  className="icon-button"
+                  onClick={() => handleDelete(user.uid)}
+                  title={t("delete")}
+                >
+                  <FontAwesomeIcon icon={faTrash} />
+                </button>
               </td>
-              <td></td>
             </tr>
           ))}
         </tbody>

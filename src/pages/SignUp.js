@@ -60,23 +60,25 @@ const SignUp = () => {
       <LanguageSelector />
       <h2>{t("signUp")}</h2>
       <Messages error={error} success={success} />
-      <form onSubmit={handleSignUp}>
-        <input
-          type="email"
-          placeholder={t("email")}
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder={t("password")}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">{t("signUp")}</button>
-      </form>
+      <div className="signup">
+        <form onSubmit={handleSignUp}>
+          <input
+            type="email"
+            placeholder={t("email")}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder={t("password")}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button type="submit">{t("signUp")}</button>
+        </form>
+      </div>
     </div>
   );
 };

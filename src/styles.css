@@ -2,28 +2,77 @@ body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
+  background-color: #f8f9fa;
 }
 
-.container,
-.dashboard,
-.personal-info-form,
-.actions-bar,
-.users-list,
-.regions,
-.self-check {
+/* div {
+  border: 1px solid black;
+} */
+
+.container {
   display: flex;
   flex-direction: column;
   /* justify-content: center; */
   justify-content: space-between;
   align-items: center;
   /* min-height: 100vh; */
-  background-color: #f8f9fa;
+}
+
+.logo,
+.lang,
+.login,
+.signup,
+.login-links,
+.actions-bar,
+.messages,
+.question,
+.personal-info-form {
+  display: flex;
+  width: 90%;
+  flex-direction: row;
+  justify-content: space-evenly;
+  /* justify-content: flex-start; */
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.messages,
+.question {
+  flex-direction: column;
+  width: 90%;
+}
+
+.logo img {
+  width: 100%;
+  /* max-width: 300px; */
+}
+
+.lang {
+  text-align: right;
+  justify-content: right;
+}
+
+.dashboard,
+ .users-list/*,
+.regions,
+.self-check  */ {
+  display: flex;
+  flex-direction: column;
+  /* justify-content: center; */
+  justify-content: space-between;
+  align-items: center;
+  /* min-height: 100vh; */
+  /* background-color: #f8f9fa; */
+}
+
+.lang {
+  justify-content: space-between;
+  flex-direction: row;
 }
 
 .actions-bar {
-  width: 300px;
+  justify-content: space-between;
   flex-direction: row;
-  margin-bottom: 20px;
   border-bottom: 1px solid #dee2e6;
 }
 
@@ -37,20 +86,8 @@ body {
   position: relative;
 } */
 
-.logo img {
-  max-width: 300px;
-  margin-bottom: 20px;
-}
-
-.lang {
-  width: 300px;
-  text-align: right;
-  margin-bottom: 20px;
-}
-
 form {
   width: 100%;
-  max-width: 300px;
   display: flex;
   flex-direction: column;
 }
@@ -62,6 +99,12 @@ form select {
   font-size: 16px;
 }
 
+input {
+  /* margin-bottom: 15px; */
+  padding: 6px;
+  font-size: 16px;
+}
+
 button {
   padding: 10px;
   font-size: 16px;
@@ -69,6 +112,7 @@ button {
   background-color: #007bff;
   border: none;
   border-radius: 5px;
+  margin-right: 5px;
 }
 
 button:hover {
@@ -77,21 +121,19 @@ button:hover {
 
 @media (max-width: 768px) {
   .logo img {
-    max-width: 300px;
   }
 }
 
-/* Only for Regions component */
 .icon-button {
   background: none;
   border: none;
   cursor: pointer;
   color: black;
-  padding: 5px;
+  padding: 7px;
 }
 
 .icon-button:hover {
-  color: #007bff; /* Change color on hover */
+  color: #007bff;
 }
 
 .icon-button:focus {
@@ -99,7 +141,7 @@ button:hover {
 }
 
 .icon-button svg {
-  font-size: 1.2em; /* Adjust icon size */
+  font-size: 1.2em;
 }
 
 .response-buttons {
@@ -125,16 +167,13 @@ button:hover {
   color: #fff;
 }
 
-.comment-section {
-  margin: 15px 0;
-}
-
 textarea {
-  width: 100%;
+  width: 65%;
   height: 100px;
-  padding: 10px;
+  padding: 10px 20px;
   border: 1px solid #ccc;
   border-radius: 5px;
+  margin: 0 0 10px 0;
 }
 
 /* button {
@@ -150,3 +189,59 @@ textarea {
 button:hover {
   background-color: #0056b3;
 } */
+
+table.users-table {
+  border-collapse: collapse;
+}
+
+table.users-table td {
+  border-left: 1px solid #ddd; /* Add this line */
+}
+table.users-table th,
+table.users-table tr {
+  border: 1px solid #000; /* Add this line */
+}
+table.users-table th,
+table.users-table td {
+  padding: 0 15px;
+}
+
+@media only screen and (max-width: 768px) {
+  table.users-table {
+    width: 95%;
+  }
+
+  table.users-table,
+  table.users-table thead,
+  table.users-table tbody,
+  table.users-table th,
+  table.users-table td,
+  table.users-table tr {
+    display: block;
+  }
+  table.users-table thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  table.users-table tr {
+    border: 1px solid #ccc;
+    margin-bottom: 5px;
+  }
+  table.users-table td {
+    border: none;
+    position: relative;
+    padding-left: 50%;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  table.users-table td:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 10px;
+    font-weight: bold;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}
