@@ -1,9 +1,7 @@
 import React from "react";
-import { signOut, sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "../firebaseConfig";
 import { useNavigate } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslation } from "react-i18next";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faUserCircle,
   faMapMarkedAlt,
@@ -13,6 +11,9 @@ import {
   faSignOutAlt,
   faHome, // Add this line
 } from "@fortawesome/free-solid-svg-icons";
+
+import { auth } from "../firebaseConfig";
+import { signOut, sendPasswordResetEmail } from "firebase/auth";
 
 const ActionsBar = () => {
   const navigate = useNavigate();
@@ -29,7 +30,6 @@ const ActionsBar = () => {
 
   const handleUserDashboard = () => {
     navigate("/users");
-    // navigate("/dashboard");
   };
 
   const handleRegions = () => {

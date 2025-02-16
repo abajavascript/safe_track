@@ -1,31 +1,33 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import {
-  signInWithEmailAndPassword,
-  sendPasswordResetEmail,
-  onAuthStateChanged,
-  signOut,
-} from "firebase/auth";
 
-import { auth } from "../firebaseConfig.js";
 import Logo from "../components/Logo"; // Add this
 import LanguageSelector from "../components/LanguageSelector"; // Add this
 import Messages from "../components/Messages"; // Add this
-import { useLocation } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+
 import { apiService } from "../services/apiService";
+import { auth } from "../firebaseConfig.js";
+import {
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+} from "firebase/auth";
+import { useAuth } from "../AuthContext";
 
 const Login = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [resetMessage, setResetMessage] = useState("");
+  const [success, setSuccess] = useState("");
+
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   function clearMessages() {
-    setResetMessage("");
+    setSuccess("");
     setError("");
   }
 
@@ -40,31 +42,41 @@ const Login = () => {
 
   // Check if user is already logged in
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        try {
-          await userAfterLogin(user);
-        } catch (error) {
-          //setError(t("failedToFetchUserData" + error.message));
-          console.error("Failed to fetch user data: ", error);
-        }
-      } else {
-        console.log("not loggd in");
-      }
-    });
+    // const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    // if (user) {
+    //   try {
+    // await userAfterLogin(user);
+    userAfterLogin(user);
+    //     } catch (error) {
+    //       //setError(t("failedToFetchUserData" + error.message));
+    //       console.error("Failed to fetch user data: ", error);
+    //     }
+    //   } else {
+    //     console.log("not loggd in");
+    //   }
+    // });
 
-    return () => unsubscribe(); // Cleanup listener
-  }, []);
+    // return () => unsubscribe(); // Cleanup listener
+  }, [user]);
 
   const userAfterLogin = async (user) => {
+    console.log("userAfterLogin: Enter to userAfterLogin.");
+    if (!user) {
+      console.log("userAfterLogin: User is null.");
+      return;
+    }
     if (user.emailVerified === false) {
-      await signOut(auth);
+      console.log("userAfterLogin: User email is not verified.");
+      // await signOut(auth);
+      await logout();
       setError(t("ERR_EMAIL_IS_NOT_VERIFIED"));
       return;
     }
 
+    console.log("userAfterLogin: User email is verified.");
     const token = await user.getIdToken(); // Get Firebase token
     localStorage.setItem("token", token); // Store token in localStorage
+    console.log("userAfterLogin: Token: ", token);
 
     // Check user status from the backend
     let userStatus = "";
@@ -79,7 +91,7 @@ const Login = () => {
       }
     }
 
-    console.log("Response: ", response);
+    console.log("userAfterLogin: Response: ", response);
 
     if (response.data.exist) {
       try {
@@ -104,7 +116,6 @@ const Login = () => {
       } else {
         navigate("/self-check");
       }
-      // navigate("/dashboard");
     }
   };
 
@@ -142,7 +153,7 @@ const Login = () => {
         email,
         password
       );
-      await userAfterLogin(userCredential.user);
+      // await userAfterLogin(userCredential.user);
     } catch (error) {
       setError(error.message);
       console.log("Login error:", error);
@@ -157,7 +168,7 @@ const Login = () => {
     }
     try {
       await sendPasswordResetEmail(auth, email);
-      setResetMessage(t("password-reset-email-sent"));
+      setSuccess(t("password-reset-email-sent"));
       setError("");
     } catch (err) {
       setError(err.message);
@@ -172,7 +183,8 @@ const Login = () => {
     <div className="container">
       <Logo />
       <LanguageSelector />
-      <Messages error={error} success={resetMessage} />{" "}
+      {/* <Messages error={error} success={resetMessage} />{" "} */}
+      <Messages error={error} success={success} />
       <div className="login">
         <form onSubmit={handleLogin}>
           <input

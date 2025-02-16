@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { apiService } from "../services/apiService";
 import { useTranslation } from "react-i18next";
-import Logo from "../components/Logo"; // Add this
-import LanguageSelector from "../components/LanguageSelector"; // Add this
-import Messages from "../components/Messages"; // Add this
-import ActionsBar from "../components/ActionsBar";
-import { auth } from "../firebaseConfig";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCheckCircle,
   faExclamationCircle,
 } from "@fortawesome/free-solid-svg-icons";
+
+import Logo from "../components/Logo"; // Add this
+import LanguageSelector from "../components/LanguageSelector"; // Add this
+import Messages from "../components/Messages"; // Add this
+import ActionsBar from "../components/ActionsBar";
+
+import { apiService } from "../services/apiService";
+import { useAuth } from "../AuthContext";
 
 const PersonalInfoForm = () => {
   const { t } = useTranslation();
@@ -30,11 +32,13 @@ const PersonalInfoForm = () => {
   const [isApproved, setIsApproved] = useState(false);
   const [userExists, setUserExists] = useState(false);
   const navigate = useNavigate(); // Initialize navigate
-  const [email, setEmail] = useState(auth.currentUser?.email);
+  const { user } = useAuth();
+  // const [email, setEmail] = useState(auth.currentUser?.email);
 
   // Fetch regions and managers from the database
   useEffect(() => {
     const fetchData = async () => {
+      console.log("fetchData: Load Regions and Managers");
       try {
         const regionsResponse = await apiService.getRegions();
         const managersResponse = await apiService.getManagers();
@@ -50,15 +54,21 @@ const PersonalInfoForm = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
+      console.log("fetchUserData: entered");
+      if (!user) {
+        console.log("fetchUserData: user is null");
+        return;
+      }
       try {
-        let userResponse = await apiService.existUserById(auth.currentUser.uid);
+        console.log("fetchUserData: Load User Data", user);
+        let userResponse = await apiService.existUserById(user.uid);
         if (userResponse.data.exist) {
-          userResponse = await apiService.getUserById(auth.currentUser.uid);
+          userResponse = await apiService.getUserById(user.uid);
           setUserExists(true);
           setFormData({
             ...userResponse.data.data,
-            email: auth.currentUser.email,
-            uid: auth.currentUser.uid,
+            email: user.email,
+            uid: user.uid,
           });
           setIsApproved(userResponse.data.data.status === "Approved");
           if (userResponse.data.data.status !== "Approved")
@@ -66,8 +76,8 @@ const PersonalInfoForm = () => {
         } else {
           setUserExists(false);
           setFormData({
-            uid: auth.currentUser.uid,
-            email: auth.currentUser.email,
+            uid: user.uid,
+            email: user.email,
             name: "",
             surname: "",
             phone: "",
@@ -95,7 +105,7 @@ const PersonalInfoForm = () => {
     };
 
     fetchUserData();
-  }, []);
+  }, [user]);
 
   const handleInputChange = (e) => {
     console.log(e.target.name, e.target.value);
@@ -108,12 +118,9 @@ const PersonalInfoForm = () => {
     setSuccess("");
 
     try {
-      console.log(formData);
+      console.log("handleSubmit with formData: ", formData);
 
-      //   setFormData({ ...formData, user_uid:  });
-      console.log("Show userInfo 1");
-
-      console.log(userExists);
+      console.log("userExists = " + userExists);
 
       const managerSelect = document.querySelector(
         "select[name='manager_uid']"
@@ -131,6 +138,8 @@ const PersonalInfoForm = () => {
         console.log(formData);
         await apiService.updateUser(formData.uid, {
           ...formData,
+          email: user.email,
+          uid: user.uid,
           manager_name: selectedManagerName,
         });
         setSuccess(t("personalInfoSaved"));
@@ -138,6 +147,8 @@ const PersonalInfoForm = () => {
         console.log("addUser...api");
         const response = await apiService.addUser({
           ...formData,
+          email: user.email,
+          uid: user.uid,
           manager_name: selectedManagerName,
         });
         console.log(response);
@@ -145,7 +156,7 @@ const PersonalInfoForm = () => {
         setSuccess(t("Waiting Operator for approve your access."));
 
         setTimeout(() => {
-          navigate(`/?email=${encodeURIComponent(auth.currentUser.email)}`);
+          navigate(`/?email=${encodeURIComponent(user?.email)}`);
         }, 3000);
       }
     } catch (err) {
@@ -160,7 +171,7 @@ const PersonalInfoForm = () => {
       {isApproved && <ActionsBar />}
       <h1>{t("personalInformation")}</h1>
       <p>
-        {t("Email")} {email}
+        {t("Email")} {user?.email}
         {isApproved ? (
           <FontAwesomeIcon
             icon={faCheckCircle}

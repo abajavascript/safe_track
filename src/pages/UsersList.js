@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { apiService } from "../services/apiService";
 import { useTranslation } from "react-i18next";
-import Logo from "../components/Logo";
-import LanguageSelector from "../components/LanguageSelector";
-import Messages from "../components/Messages";
-import ActionsBar from "../components/ActionsBar";
-import { auth } from "../firebaseConfig";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faEdit,
@@ -15,6 +9,14 @@ import {
   faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 
+import Logo from "../components/Logo";
+import LanguageSelector from "../components/LanguageSelector";
+import Messages from "../components/Messages";
+import ActionsBar from "../components/ActionsBar";
+
+import { apiService } from "../services/apiService";
+import { useAuth } from "../AuthContext";
+
 const UsersList = () => {
   const { t } = useTranslation();
   const [users, setUsers] = useState([]);
@@ -22,12 +24,18 @@ const UsersList = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [editingUser, setEditingUser] = useState(null);
+  const { user } = useAuth();
 
   // Fetch users and current user's role
   useEffect(() => {
     const fetchUsers = async () => {
+      console.log("fetchUsers : entered");
+      if (!user) {
+        console.log("fetchUsers : user is null");
+        return;
+      }
       try {
-        const userResponse = await apiService.getUserById(auth.currentUser.uid);
+        const userResponse = await apiService.getUserById(user.uid);
         setIsAdmin(userResponse.data.data.role === "Admin");
 
         const usersResponse = await apiService.getUserList();
@@ -46,7 +54,7 @@ const UsersList = () => {
     };
 
     fetchUsers();
-  }, [t]);
+  }, []);
 
   // Handle edit
   const handleEdit = (uid, role) => {

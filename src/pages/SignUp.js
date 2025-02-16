@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate, useLocation } from "react-router-dom";
+
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
 } from "firebase/auth";
 import { auth } from "../firebaseConfig";
-import { useTranslation } from "react-i18next";
+
 import Logo from "../components/Logo";
 import LanguageSelector from "../components/LanguageSelector";
 import Messages from "../components/Messages";
-import { useNavigate, useLocation } from "react-router-dom";
 
 const SignUp = () => {
   const { t } = useTranslation();
@@ -36,7 +38,7 @@ const SignUp = () => {
         email,
         password
       );
-      await sendEmailVerification(userCredential.user); // --- NEED TO BE UNCOMMENTED IN PRODUCTION
+      //await sendEmailVerification(userCredential.user); // --- NEED TO BE UNCOMMENTED IN PRODUCTION
       setSuccess(t("verify-your-email"));
       setError("");
     } catch (err) {

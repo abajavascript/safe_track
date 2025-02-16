@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { apiService } from "../services/apiService";
 import { useTranslation } from "react-i18next";
-import Logo from "../components/Logo";
-import LanguageSelector from "../components/LanguageSelector";
-import Messages from "../components/Messages";
-import ActionsBar from "../components/ActionsBar";
-import { auth } from "../firebaseConfig";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faEdit,
@@ -16,6 +10,14 @@ import {
   faEnvelope,
 } from "@fortawesome/free-solid-svg-icons";
 
+import Logo from "../components/Logo";
+import LanguageSelector from "../components/LanguageSelector";
+import ActionsBar from "../components/ActionsBar";
+import Messages from "../components/Messages";
+
+import { apiService } from "../services/apiService";
+import { useAuth } from "../AuthContext";
+
 const Regions = () => {
   const { t } = useTranslation();
   const [regions, setRegions] = useState([]);
@@ -24,26 +26,30 @@ const Regions = () => {
   const [success, setSuccess] = useState("");
   const [editingRegion, setEditingRegion] = useState(null);
   const [newRegionName, setNewRegionName] = useState("");
+  const { user } = useAuth();
 
   // Fetch regions and user role
   useEffect(() => {
     const fetchRegions = async () => {
+      if (!user) return;
       try {
         console.log("Loading current user...");
-        const userResponse = await apiService.getUserById(auth.currentUser.uid);
+        const userResponse = await apiService.getUserById(user.uid);
         setIsAdmin(userResponse.data.data.role === "Admin");
         console.log("Loading regions...");
         const regionsResponse = await apiService.getRegions();
+        console.log(regionsResponse.data);
         setRegions(
           regionsResponse.data.sort((a, b) => a.name.localeCompare(b.name))
         );
+        console.log("Regions loaded");
       } catch (err) {
         setError(t("failedToLoadData"));
       }
     };
 
     fetchRegions();
-  }, [t]);
+  }, [user]);
 
   // Handle edit
   const handleEdit = (id, name) => {
