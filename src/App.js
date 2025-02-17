@@ -4,7 +4,6 @@ import "./styles.css";
 import { AuthProvider } from "./AuthContext";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
-// import Dashboard from "./pages/Dashboard";
 import Regions from "./pages/Regions";
 import UsersList from "./pages/UsersList";
 import PersonalInfoForm from "./pages/PersonalInfoForm";
@@ -17,7 +16,6 @@ function App() {
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
-          {/* <Route path="/dashboard" element={<Dashboard />} /> */}
           <Route path="/regions" element={<Regions />} />
           <Route path="/users" element={<UsersList />} />
           <Route path="/personal-info" element={<PersonalInfoForm />} />
