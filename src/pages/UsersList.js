@@ -7,6 +7,10 @@ import {
   faTrash,
   faCheck,
   faTimes,
+  faPlus,
+  faTimesCircle,
+  faClock,
+  faExclamationCircle,
 } from "@fortawesome/free-solid-svg-icons";
 
 import Logo from "../components/Logo";
@@ -26,35 +30,119 @@ const UsersList = () => {
   const [editingUser, setEditingUser] = useState(null);
   const { user } = useAuth();
 
-  // Fetch users and current user's role
+  const fetchUsers = async () => {
+    console.log("fetchUsers : entered");
+    if (!user) {
+      console.log("fetchUsers : user is null");
+      return;
+    }
+    try {
+      const userResponse = await apiService.getUserById(user.uid);
+      setIsAdmin(userResponse.data.data.role === "Admin");
+      const usersResponse = await apiService.getUserList();
+      const usersData = usersResponse.data.data.map((user) => ({
+        ...user,
+        fullName: user.name + " " + user.surname,
+      }));
+
+      const usersSorted = usersData.sort((a, b) =>
+        a.fullName.localeCompare(b.fullName)
+      );
+      setUsers(usersSorted);
+
+      const statuses = await apiService.getStatusesForUserId(user.uid);
+      const usersWithStatuses = usersSorted.map((user) => {
+        const lastRequest = statuses.data.data.lastRequests.find(
+          (lastRequest) => lastRequest.uid === user.uid
+        );
+        const lastResponse = statuses.data.data.lastResponses.find(
+          (lastResponse) => lastResponse.user_uid === user.uid
+        );
+        return {
+          ...user,
+          lastRequest: lastRequest || { createdAt: new Date() },
+          lastResponse: lastResponse,
+        };
+      });
+      console.log("fetchUsers : usersWithStatuses", usersWithStatuses);
+      setUsers(usersWithStatuses);
+    } catch (err) {
+      setError(t("failedToLoadData"));
+      console.error("Failed to fetch users:", err);
+    }
+  };
+
   useEffect(() => {
-    const fetchUsers = async () => {
-      console.log("fetchUsers : entered");
-      if (!user) {
-        console.log("fetchUsers : user is null");
-        return;
-      }
-      try {
-        const userResponse = await apiService.getUserById(user.uid);
-        setIsAdmin(userResponse.data.data.role === "Admin");
-
-        const usersResponse = await apiService.getUserList();
-        usersResponse.data.data.forEach(
-          (user) => (user.fullName = user.name + " " + user.surname)
-        );
-        console.log(usersResponse.data);
-        setUsers(
-          usersResponse.data.data.sort((a, b) =>
-            a.fullName.localeCompare(b.fullName)
-          )
-        );
-      } catch (err) {
-        setError(t("failedToLoadData"));
-      }
-    };
-
     fetchUsers();
-  }, []);
+  }, [user]);
+
+  // useEffect(() => {
+  //   if (users.length > 0) {
+  //     fetchStatuses();
+  //   }
+  // }, [users]);
+
+  const formatDate = (date) => {
+    if (!date) return null;
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, "0");
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+    const seconds = String(d.getSeconds()).padStart(2, "0");
+    return `${day}.${month}.${year} ${hours}:${minutes}:${seconds}`;
+  };
+
+  const renderUserStatus = (user) => {
+    if (!user.lastResponse && !user.lastRequest) return null;
+    return (
+      <>
+        {/* <span>? {formatDate(user.lastRequest?.createdAt)}</span>
+        <br />
+        <span>
+          &gt;{" "}
+          {user.lastResponse?.response_date_time > user.lastRequest?.createdAt
+            ? formatDate(user.lastResponse?.response_date_time)
+            : " "}
+        </span> */}
+        <span>
+          {user.lastResponse &&
+          new Date(user.lastResponse.response_date_time) >
+            new Date(user.lastRequest?.createdAt) ? (
+            user.lastResponse.safety_status === "Yes" ? (
+              <FontAwesomeIcon
+                icon={faPlus}
+                style={{
+                  color: "green",
+                }}
+                title="In safe place"
+              />
+            ) : (
+              <FontAwesomeIcon
+                icon={faTimesCircle}
+                style={{ color: "red" }}
+                title="In danger"
+              />
+            )
+          ) : new Date(user.lastRequest?.createdAt) >
+            new Date(Date.now() - 3 * 60 * 60 * 1000) ? (
+            <FontAwesomeIcon
+              icon={faClock}
+              style={{ color: "yellow" }}
+              title="Waiting for response. Less than 3 hours before request."
+            />
+          ) : (
+            <FontAwesomeIcon
+              icon={faExclamationCircle}
+              style={{ color: "orange" }}
+              title="Response overdue. More than 3 hours waiting for response."
+            />
+          )}
+        </span>
+      </>
+    );
+  };
 
   // Handle edit
   const handleEdit = (uid, role) => {
@@ -137,7 +225,9 @@ const UsersList = () => {
           {sortedUsers.map((user) => (
             <tr key={user.uid}>
               <td data-label={t("fullName")}>{user.fullName || "\u00A0"}</td>
-              <td data-label={t("status")}>{"\u00A0"}</td>
+              <td data-label={t("status")}>
+                {renderUserStatus(user) || "\u00A0"}
+              </td>
               <td data-label={t("email")}>{user.email || "\u00A0"}</td>
               <td data-label={t("phone")}>{user.phone || "\u00A0"}</td>
               <td data-label={t("region")}>{user.region || "\u00A0"}</td>

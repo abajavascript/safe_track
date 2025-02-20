@@ -43,6 +43,7 @@ export const apiService = {
 
   addResponse: (data) => apiClient.post("/responses", data),
   getLastStatusByUserId: (uid) => apiClient.get(`/responses/status/${uid}`),
+  getStatusesForUserId: (uid) => apiClient.get(`/responses/statuses/${uid}`),
 
   saveSubscription: (data) => apiClient.post("/subscriptions", data),
 };

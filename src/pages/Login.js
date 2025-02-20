@@ -81,6 +81,8 @@ const Login = () => {
     // Check user status from the backend
     let userStatus = "";
     let response;
+    const startTime = new Date();
+    console.log("userAfterLogin: Start time:", startTime.toLocaleString());
     try {
       response = await apiService.existUserById(user.uid);
     } catch (err) {
@@ -90,6 +92,9 @@ const Login = () => {
         setError(err.message);
       }
     }
+    const endTime = new Date();
+    console.log("userAfterLogin: End time:", endTime.toLocaleString());
+    console.log("userAfterLogin: Execution time:", endTime - startTime, "ms");
 
     console.log("userAfterLogin: Response: ", response);
 
