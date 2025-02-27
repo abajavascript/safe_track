@@ -1,4 +1,5 @@
 import axios from "axios";
+import { auth } from "../firebaseConfig"; // Import Firebase auth
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL; //"http://localhost:5000/api"; // Replace with your backend URL
 
@@ -11,11 +12,18 @@ const apiClient = axios.create({
 });
 
 // Add Authorization header dynamically
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token"); // Save Firebase token in localStorage
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+apiClient.interceptors.request.use(async (config) => {
+  const user = auth.currentUser;
+
+  if (user) {
+    try {
+      const token = await user.getIdToken(); // Get fresh token if needed
+      config.headers.Authorization = `Bearer ${token}`;
+    } catch (error) {
+      console.error("Error getting Firebase token:", error);
+    }
   }
+
   return config;
 });
 
