@@ -106,9 +106,9 @@ const Regions = () => {
     try {
       console.log(region.id);
       await apiService.sendNotificationForRegion(region.id); // Call backend API to send notifications
-      setSuccess(t("notificationSent") + region.name);
+      setSuccess(t("notificationSentToRegion") + region.name);
     } catch (err) {
-      setError(t("failedToSendNotification" + region.name));
+      setError(t("failedToSendNotificationToRegion") + region.name);
     }
   };
 

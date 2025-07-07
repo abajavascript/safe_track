@@ -70,6 +70,15 @@
   "surname": "Surname",
   "selectRegion": "Region",
   "selectManager": "Manager",
-  "notificationSent": "Notification was sent to region ",
-  "failedToSendNotification": "Failed to send notification to region "
+  "notificationSentToRegion": "Notification was sent to region ",
+  "notificationSentToUser": "Notification was sent to user ",
+  "failedToSendNotificationToRegion": "Failed to send notification to region ",
+  "failedToSendNotificationToUser": "Failed to send notification to user ",
+  "phone-format": "Please enter a valid phone number (7-15 digits, spaces, +, -, or parentheses allowed).",
+  "sendVerificationEmail": "Your Email address has not been verified!\\nSend Verification Email once more?",
+  "userFieldsUpdated": "User information has been updated.",
+  "failedToUpdateUserFields": "Failed to update user information.",
+  "emailVerifiedByAdmin": "Email verified by Admin manually.",
+  "failedToVerifyEmailByAdmin": "Failed to verify email manually.",
+  "verifyEmail": "Verify Email manually."
 }

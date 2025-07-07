@@ -11,6 +11,7 @@ import {
   faTimesCircle,
   faClock,
   faExclamationCircle,
+  faEnvelope,
 } from "@fortawesome/free-solid-svg-icons";
 
 import Logo from "../components/Logo";
@@ -28,6 +29,8 @@ const UsersList = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [editingUser, setEditingUser] = useState(null);
+  const [regions, setRegions] = useState([]);
+  const [managers, setManagers] = useState([]);
   const { user } = useAuth();
 
   const fetchUsers = async () => {
@@ -72,8 +75,30 @@ const UsersList = () => {
     }
   };
 
+  const fetchRegions = async () => {
+    try {
+      if (!user) return;
+      const regionsResponse = await apiService.getRegions();
+      setRegions(regionsResponse.data);
+    } catch (err) {
+      setError(t("failedToLoadData"));
+    }
+  };
+
+  const fetchManagers = async () => {
+    try {
+      if (!user) return;
+      const managersResponse = await apiService.getManagers();
+      setManagers(managersResponse.data);
+    } catch (err) {
+      setError(t("failedToLoadData"));
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
+    fetchRegions();
+    fetchManagers();
   }, [user]);
 
   // useEffect(() => {
@@ -98,14 +123,6 @@ const UsersList = () => {
     if (!user.lastResponse && !user.lastRequest) return null;
     return (
       <>
-        {/* <span>? {formatDate(user.lastRequest?.createdAt)}</span>
-        <br />
-        <span>
-          &gt;{" "}
-          {user.lastResponse?.response_date_time > user.lastRequest?.createdAt
-            ? formatDate(user.lastResponse?.response_date_time)
-            : " "}
-        </span> */}
         <span>
           {user.lastResponse &&
           new Date(user.lastResponse.response_date_time) >
@@ -122,7 +139,7 @@ const UsersList = () => {
               <FontAwesomeIcon
                 icon={faTimesCircle}
                 style={{ color: "red" }}
-                title="In danger"
+                title={"In danger\n" + user.lastResponse.safety_comment}
               />
             )
           ) : new Date(user.lastRequest?.createdAt) >
@@ -140,28 +157,68 @@ const UsersList = () => {
             />
           )}
         </span>
+        <div style={{ marginLeft: "10px" }}>
+          <div>? {formatDate(user.lastRequest?.createdAt)}</div>
+          <div>
+            &gt;{" "}
+            {user.lastResponse?.response_date_time > user.lastRequest?.createdAt
+              ? formatDate(user.lastResponse?.response_date_time)
+              : " "}
+          </div>
+        </div>
       </>
     );
   };
 
   // Handle edit
-  const handleEdit = (uid, role) => {
-    setEditingUser({ uid, role });
+  const handleEditUser = (uid, role, region, manager_uid, manager_name) => {
+    setEditingUser({ uid, role, region, manager_uid, manager_name });
   };
 
-  // Handle save role
-  const handleSaveRole = async (uid) => {
+  // Handle save user fields
+  const handleSaveUser = async (uid) => {
     try {
-      await apiService.updateUserRole(uid, editingUser.role);
+      // await apiService.updateUserRole(uid, editingUser.role);
+      await apiService.updateUserFields(uid, {
+        role: editingUser.role,
+        region: editingUser.region,
+        manager_uid: editingUser.manager_uid,
+        manager_name: editingUser.manager_name,
+      });
       setUsers(
         users.map((user) =>
-          user.uid === uid ? { ...user, role: editingUser.role } : user
+          user.uid === uid
+            ? {
+                ...user,
+                role: editingUser.role,
+                region: editingUser.region,
+                manager_uid: editingUser.manager_uid,
+                manager_name: editingUser.manager_name,
+              }
+            : user
         )
       );
       setEditingUser(null);
-      setSuccess(t("userRoleUpdated"));
+      setSuccess(t("userFieldsUpdated"));
     } catch (err) {
-      setError(t("failedToUpdateUserRole"));
+      setError(t("failedToUpdateUserFields"));
+    }
+  };
+
+  // Handle verify user email
+  const handleVerifyEmail = async (uid) => {
+    try {
+      await apiService.verifyEmail(uid);
+      setUsers(
+        users.map((user) =>
+          user.uid === uid
+            ? { ...user, status: "Verified", emailVerified: true }
+            : user
+        )
+      );
+      setSuccess(t("emailVerifiedByAdmin"));
+    } catch (err) {
+      setError(t("failedToVerifyEmailByAdmin"));
     }
   };
 
@@ -201,6 +258,16 @@ const UsersList = () => {
     return a.role.localeCompare(b.role);
   });
 
+  const handleSendNotification = async (user) => {
+    try {
+      console.log(user.uid);
+      await apiService.sendNotificationForUser(user.uid); // Call backend API to send notifications
+      setSuccess(t("notificationSentToUser") + user.fullName);
+    } catch (err) {
+      setError(t("failedToSendNotificationToUser") + user.fullName);
+    }
+  };
+
   return (
     <div className="users-list">
       <Logo />
@@ -211,6 +278,7 @@ const UsersList = () => {
       <table className="users-table">
         <thead>
           <tr>
+            {isAdmin && <th>{t("notifyUsers")}</th>}
             <th>{t("fullName")}</th>
             <th>{t("status")}</th>
             <th>{t("email")}</th>
@@ -224,16 +292,73 @@ const UsersList = () => {
         <tbody>
           {sortedUsers.map((user) => (
             <tr key={user.uid}>
+              {isAdmin && (
+                <td>
+                  <button
+                    className="icon-button"
+                    onClick={() => handleSendNotification(user)}
+                    title={t("notifyUsers")}
+                  >
+                    <FontAwesomeIcon icon={faEnvelope} />
+                  </button>
+                </td>
+              )}
               <td data-label={t("fullName")}>{user.fullName || "\u00A0"}</td>
-              <td data-label={t("status")}>
+              <td
+                data-label={t("status")}
+                style={{ display: "flex", alignItems: "center" }}
+              >
                 {renderUserStatus(user) || "\u00A0"}
               </td>
               <td data-label={t("email")}>{user.email || "\u00A0"}</td>
               <td data-label={t("phone")}>{user.phone || "\u00A0"}</td>
-              <td data-label={t("region")}>{user.region || "\u00A0"}</td>
+              <td data-label={t("region")}>
+                {editingUser?.uid === user.uid ? (
+                  <select
+                    value={editingUser.region}
+                    style={{ fontSize: "16px" }}
+                    onChange={(e) =>
+                      setEditingUser({ ...editingUser, region: e.target.value })
+                    }
+                  >
+                    <option value="">{t("selectRegion")}</option>
+                    {regions.map((region) => (
+                      <option key={region.id} value={region.name}>
+                        {region.name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  user.region || "\u00A0"
+                )}
+              </td>
               <td data-label={t("manager")}>
-                {user.manager_name || "\u00A0"}{" "}
-                <span style={{ display: "none" }}>{user.manager_uid}</span>
+                {editingUser?.uid === user.uid ? (
+                  <select
+                    value={editingUser.manager_uid}
+                    style={{ fontSize: "16px" }}
+                    onChange={(e) =>
+                      setEditingUser({
+                        ...editingUser,
+                        manager_uid: e.target.value,
+                        manager_name:
+                          e.target.options[e.target.selectedIndex].text,
+                      })
+                    }
+                  >
+                    <option value="">{t("selectManager")}</option>
+                    {managers.map((manager) => (
+                      <option key={manager.uid} value={manager.uid}>
+                        {manager.name} {manager.surname}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <>
+                    {user.manager_name || "\u00A0"}
+                    <span style={{ display: "none" }}>{user.manager_uid}</span>
+                  </>
+                )}
               </td>
               <td data-label={t("role")}>
                 {editingUser && editingUser?.uid === user.uid ? (
@@ -258,7 +383,7 @@ const UsersList = () => {
                         {" "}
                         <button
                           className="icon-button"
-                          onClick={() => handleSaveRole(user.uid)}
+                          onClick={() => handleSaveUser(user.uid)}
                           title={t("save")}
                         >
                           <FontAwesomeIcon icon={faSave} />
@@ -271,12 +396,22 @@ const UsersList = () => {
                           <FontAwesomeIcon icon={faTimes} />
                         </button>
                       </>
+                    ) : "emailVerified" in user ? (
+                      <></>
                     ) : (
                       <>
                         {" "}
                         <button
                           className="icon-button"
-                          onClick={() => handleEdit(user.uid, user.role)}
+                          onClick={() =>
+                            handleEditUser(
+                              user.uid,
+                              user.role,
+                              user.region,
+                              user.manager_uid,
+                              user.manager_name
+                            )
+                          }
                           title={t("edit")}
                         >
                           <FontAwesomeIcon icon={faEdit} />
@@ -288,6 +423,15 @@ const UsersList = () => {
               </td>
               <td data-label={t("actions")}>
                 {user.status || "\u00A0"}
+                {user.status === "Unverified" && (
+                  <button
+                    className="icon-button"
+                    onClick={() => handleVerifyEmail(user.uid)}
+                    title={t("verifyEmail")}
+                  >
+                    <FontAwesomeIcon icon={faCheck} />
+                  </button>
+                )}
                 {user.status === "Pending" && (
                   <button
                     className="icon-button"

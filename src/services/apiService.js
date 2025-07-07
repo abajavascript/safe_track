@@ -35,8 +35,12 @@ export const apiService = {
   getUserList: () => apiClient.get("/users"),
   getManagers: () => apiClient.get("/users/managers"),
   updateUser: (uid, userData) => apiClient.put(`/users/${uid}`, userData),
+  updateUserFields: (uid, userData) =>
+    apiClient.put(`/users/update-user-fields/${uid}`, userData),
   updateUserRole: (uid, role) =>
     apiClient.put(`/users/update-role/${uid}`, { role }),
+  verifyEmail: (uid, status) =>
+    apiClient.put(`/users/verify-email/${uid}`, { status }),
   updateUserStatus: (uid, status) =>
     apiClient.put(`/users/update-status/${uid}`, { status }),
   deleteUser: (uid) => apiClient.delete(`/users/${uid}`),
@@ -46,6 +50,8 @@ export const apiService = {
   deleteRegion: (uid) => apiClient.delete(`/regions/${uid}`),
   updateRegion: (uid, regionData) =>
     apiClient.put(`/regions/${uid}`, regionData),
+  sendNotificationForUser: (userId) =>
+    apiClient.post(`/users/${userId}/notify`),
   sendNotificationForRegion: (regionId) =>
     apiClient.post(`/regions/${regionId}/notify`),
 

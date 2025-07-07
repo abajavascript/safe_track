@@ -42,7 +42,8 @@ body {
   width: 90%;
 }
 
-.logo img {
+.logo img,
+.logo a {
   width: 100%;
   /* max-width: 300px; */
 }
@@ -120,7 +121,8 @@ button:hover {
 }
 
 @media (max-width: 768px) {
-  .logo img {
+  .logo img,
+  .logo a {
   }
 }
 

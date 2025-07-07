@@ -212,6 +212,8 @@ const PersonalInfoForm = () => {
             value={formData.phone}
             onChange={handleInputChange}
             required
+            pattern="[0-9+\-\s()]{7,15}"
+            title={t("phone-format")}
           />
           <select
             name="region"
