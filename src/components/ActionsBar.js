@@ -21,6 +21,9 @@ const ActionsBar = () => {
 
   // Navigation Handlers
   const handleSelfCheck = () => {
+    if (window.location.pathname === "/self-check") {
+      document.querySelector(".question").style.display = "flex";
+    }
     navigate("/self-check");
   };
 

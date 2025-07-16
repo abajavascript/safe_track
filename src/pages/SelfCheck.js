@@ -74,6 +74,7 @@ const SelfCheck = () => {
       setSafetyStatus(null);
       setSafetyComment("");
       fetchStatus();
+      document.querySelector(".question").style.display = "none";
     } catch (err) {
       setError(err.response ? err.response.data.message : t("unknown-error"));
     }

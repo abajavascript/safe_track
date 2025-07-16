@@ -157,7 +157,7 @@ const UsersList = () => {
             />
           )}
         </span>
-        <div style={{ marginLeft: "10px" }}>
+        <div style={{ marginLeft: "10px", maxWidth: "200px" }}>
           <div>? {formatDate(user.lastRequest?.createdAt)}</div>
           <div>
             &gt;{" "}
@@ -165,6 +165,15 @@ const UsersList = () => {
               ? formatDate(user.lastResponse?.response_date_time)
               : " "}
           </div>
+
+          {user.lastResponse &&
+          new Date(user.lastResponse.response_date_time) >
+            new Date(user.lastRequest?.createdAt) &&
+          user.lastResponse.safety_status !== "Yes" ? (
+            <div>{user.lastResponse?.safety_comment}</div>
+          ) : (
+            " "
+          )}
         </div>
       </>
     );
